@@ -1,38 +1,30 @@
 //[_battery,_tgt,_batlead,"SADARM",RydFFE_Friends,RydFFE_Debug] spawn RYD_fnc_CFF_FFE
 params ["_battery", "_target", "_batlead", "_Ammo", "_friends", "_Debug", "_ammoG", "_amount"];
 
-private ["_batname","_first","_phaseF","_targlead","_againF","_dispF","_accF","_Rate","_FMType","_againcheck","_Aunit",
-"_RydAccF","_TTI","_amount1","_amount2","_template","_targetPos","_X0","_Y0","_X1","_Y1","_X2","_Y2","_Xav","_Yav","_transspeed","_transdir","_Xhd","_Yhd","_impactpos","_safebase","_distance",
-"_safe","_safecheck","_gauss1","_gauss09","_gauss04","_gauss2","_distance2","_DdistF","_DdamageF","_DweatherF","_DskillF","_anotherD","_Dreduct","_spawndisp","_dispersion","_disp","_RydAccF",
-"_gauss1b","_gauss2b","_AdistF","_AweatherF","_AdamageF","_AskillF","_Areduct","_spotterF","_anotherA","_acc","_finalimpact","_posX","_posY","_i","_dX","_dY","_angle","_dXb","_dYb","_posX2",
-"_posY2","_AmmoN","_exDst","_exPX","_exPY","_onRoad","_exPos","_nR","_stRS","_dMin","_dAct","_dSum","_checkedRS","_RSArr","_angle","_rPos","_actRS","_ammocheck","_artyGp","_ammoCount","_dstAct",
-"_maxRange","_minRange","_isTaken","_batlead","_alive","_waitFor","_UL","_ammoC","_add","_myFO","_assumedPos","_eta"];	
-
-
-_myFO = _target getVariable ["RydFFE_MyFO",objNull];
-_assumedPos = (getPosATL _target);
-if not (isNull _myFO) then
+private _myFO = _target getVariable ["RydFFE_MyFO",objNull];
+private _assumedPos = (getPosATL _target);
+if (!isNull _myFO) then
 {
 	_assumedPos = _myFO getHideFrom _target;
 };
 		
-_markers = [];
+private _markers = [];
 	
-_battery1 = _battery select 0;
+private _battery1 = _battery select 0;
 
-_batLead1 = leader _battery1;
+private _batLead1 = leader _battery1;
 
-_batname = str _battery1;
+private _batname = str _battery1;
 
-//_first = _battery getVariable [("FIRST" + _batname),1];
+//private _first = _battery getVariable [("FIRST" + _batname),1];
 
-//_artyGp = group _batlead;
+//private _artyGp = group _batlead;
 
-_isTaken = (group _target) getVariable ["CFF_Taken",false];
-if ((_isTaken) and (RydFFE_Monogamy)) exitWith 
+private _isTaken = (group _target) getVariable ["CFF_Taken",false];
+if ((_isTaken) && (RydFFE_Monogamy)) exitWith 
 {
 	{
-		if not (isNull _x) then
+		if (!isNull _x) then
 		{
 			_x setVariable ["RydFFE_BatteryBusy",false]
 		}
@@ -42,50 +34,45 @@ if ((_isTaken) and (RydFFE_Monogamy)) exitWith
 
 (group _target) setVariable ["CFF_Taken",true];
 
-_phaseF = [1,2];
-if ((RydFFE_OnePhase) or ((count RydFFE_FO) == 0) and not (RydFFE_2PhWithoutFO)) then {_phaseF = [1]};
+private _phaseF = [1,2];
+if ((RydFFE_OnePhase) || ((count RydFFE_FO) isEqualTo 0) && !RydFFE_2PhWithoutFO) then {_phaseF = [1]};
 
-_targlead = vehicle (leader _target);
+private _targlead = vehicle (leader _target);
 
-_waitFor = true;
+private _waitFor = true;
 	
-_amount1 = ceil (_amount/6);
-_amount2 = _amount - _amount1;
+private _amount1 = ceil (_amount/6);
+private _amount2 = _amount - _amount1;
 
 {
-	if (isNil ("_myFO")) exitwith {_waitFor = false};
-	if (isNull _myFO) exitwith {_waitFor = false};
-	if not (alive _myFO) exitwith {_waitFor = false};
+	if (
+		isNil "_myFO" ||
+		{isNull _myFO} ||
+		{!alive _myFO} ||
+		{isNil "_target"} ||
+		{isNull _target} ||
+		{!alive _target} ||
+		{(_batlead findIf {!isNull _x}) isEqualTo -1} ||
+		{isNull _battery1} ||
+		{(_batlead findIf {alive _x}) isEqualTo -1} ||
+		{(abs (speed _target)) > 50} ||
+		{(_assumedPos select 2) > 20}
+	) exitWith {_waitFor = false};
 	
-	if (isNil ("_target")) exitwith {_waitFor = false};
-	if (isNull _target) exitwith {_waitFor = false};
-	if not (alive _target) exitwith {_waitFor = false};
-	
-	if (({not (isNull _x)} count _batlead) < 1) exitwith {_waitFor = false};
-	if (isNull _battery1) exitWith {_waitFor = false};
-	if (({(alive _x)} count _batlead) < 1)  exitwith {_waitFor = false};
+	private _againF = 0.85;
 
-	if ((abs (speed _target)) > 50) exitWith {_waitFor = false};
-	if ((_assumedPos select 2) > 20)  exitWith {_waitFor = false};
-	
-	if ((_assumedPos distance [0,0,0]) == 0) exitWith {_waitFor = false};
-	
-	_againF = 0.85;
-	_accF = RydFFE_Acc;
+	private _againcheck = _battery1 getVariable [("CFF_Trg" + _batname),objNull];
+	if !((str _againcheck) isEqualTo (str _target)) then {_againF = 1};
 
-	_againcheck = _battery1 getVariable [("CFF_Trg" + _batname),objNull];
-	if not ((str _againcheck) == (str _target)) then {_againF = 1};
-
-	_RydAccF = 1;
+	private _RydAccF = 1;
 
 	//if (isNil ("RydFFE_Amount")) then {_amount = _this select 7} else {_amount = RydFFE_Amount};
-	//if (isNil ("RydFFE_Acc")) then {_accF = 2} else {_accF = RydFFE_Acc};
 
 	//if (_ammoG in ["SPECIAL","SECONDARY"]) then {_amount = ceil (_amount/3)};
 
-	if ((count _phaseF) == 2) then
+	if ((count _phaseF) isEqualTo 2) then
 	{
-		if (_x == 1) then
+		if (_x isEqualTo 1) then
 		{
 			_amount = _amount1
 		}
@@ -95,25 +82,25 @@ _amount2 = _amount - _amount1;
 		}
 	};
 
-	if (_amount == 0) exitwith {_waitFor = false};
+	if (_amount isEqualTo 0) exitwith {_waitFor = false};
 
-	if not (isNull _myFO) then
+	if (!isNull _myFO) then
 	{
 		_assumedPos = _myFO getHideFrom _target;
 	};
 	
-	if ((_assumedPos distance [0,0,0]) == 0) exitWith {_waitFor = false};
+	if (_assumedPos isEqualTo [0,0,0]) exitWith {_waitFor = false};
 
-	_targetPosATL = _assumedPos;
-	_targetPos = ATLtoASL _assumedPos;
+	private _targetPosATL = _assumedPos;
+	private _targetPos = ATLtoASL _assumedPos;
 	
-	_eta = -1;
+	private _eta = -1;
 	
 	{
 		{
 			_vh = vehicle _x;
 			_vhMags = magazines _vh; 
-			if (not (_vh isEqualTo _x) and {(count _vhMags) > 0}) then
+			if (!(_vh isEqualTo _x) && {(count _vhMags) > 0}) then
 			{
 				_ammoC = _vhMags select 0;
 				
@@ -127,7 +114,7 @@ _amount2 = _amount - _amount1;
 				
 				_newEta = _vh getArtilleryETA [_targetPosATL,_ammoC];
 				
-				if (not (isNil "_newEta") and {((_newEta < _eta) or (_eta < 0))}) then
+				if (!isNil "_newEta" && {((_newEta < _eta) || (_eta < 0))}) then
 				{
 					_eta = _newEta
 				}
@@ -137,30 +124,27 @@ _amount2 = _amount - _amount1;
 	}
 	foreach _battery;
 		
-	if (_eta == -1) exitWith {_waitFor = false};
+	if (_eta isEqualTo -1) exitWith {_waitFor = false};
 
-	_X0 = (_targetpos select 0);
-	_Y0 = (_targetpos select 1);
+	private _X0 = (_targetpos select 0);
+	private _Y0 = (_targetpos select 1);
 	
 	sleep 10;
 	
 	if (
-		isNil ("_myFO") ||
+		isNil "_myFO" ||
 		{isNull _myFO} ||
-		{not (alive _myFO)} ||
-
+		{!alive _myFO} ||
 		{isNull _target} ||
-		{not (alive _target)} ||
-	
-		{({not (isNull _x)} count _batlead) < 1} ||
+		{!alive _target} ||
+		{(_batlead findIf {!isNull _x}) isEqualTo -1} ||
 		{isNull _battery1} ||
-		{({(alive _x)} count _batlead) < 1} ||
-		
+		{(_batlead findIf {alive _x}) isEqualTo -1} ||
 		{(abs (speed _target)) > 50} ||
 		{(_assumedPos select 2) > 20}
 	) exitWith {_waitFor = false};
 
-	if not (isNull _myFO) then
+	if (!isNull _myFO) then
 	{
 		_assumedPos = _myFO getHideFrom _target;
 	};
@@ -169,59 +153,55 @@ _amount2 = _amount - _amount1;
 
 	_targetPos = ATLtoASL _assumedPos;
 	
-	_X1 = (_targetpos select 0);
-	_Y1 = (_targetpos select 1);
+	private _X1 = (_targetpos select 0);
+	private _Y1 = (_targetpos select 1);
 	
 	sleep 10;
 	
-	if 
-	(
+	if (
 		isNil "_myFO" ||
 		{isNull _myFO} ||
-		{not (alive _myFO)} ||
-	
+		{!alive _myFO} ||
 		{isNull _target} ||
-		{not (alive _target)} ||
-	
-		{({not (isNull _x)} count _batlead) < 1} ||
+		{!alive _target} ||
+		{(_batlead findIf {!isNull _x}) isEqualTo -1} ||
 		{isNull _battery1} ||
-		{({(alive _x)} count _batlead) < 1} ||
-		
+		{(_batlead findIf {alive _x}) isEqualTo -1} ||
 		{(abs (speed _target)) > 50} ||
 		{(_assumedPos select 2) > 20}
 	) exitWith {_waitFor = false};
 
-	if not (isNull _myFO) then
+	if (!isNull _myFO) then
 	{
 		_assumedPos = _myFO getHideFrom _target;
 	};
 	
-	if ((_assumedPos distance [0,0,0]) == 0) exitWith {_waitFor = false};
+	if (_assumedPos isEqualTo [0,0,0]) exitWith {_waitFor = false};
 
 	_targetPos = ATLtoASL _assumedPos;
 		
-	_X2 = (_targetpos select 0);
-	_Y2 = (_targetpos select 1);
+	private _X2 = (_targetpos select 0);
+	private _Y2 = (_targetpos select 1);
 
-	_onRoad = isOnRoad _targlead;
+	private _onRoad = isOnRoad _targlead;
 
-	_Xav = (_X1+_X2)/2;
-	_Yav = (_Y1+_Y2)/2;
+	private _Xav = (_X1+_X2)/2;
+	private _Yav = (_Y1+_Y2)/2;
 
-	_transspeed = ([_X0,_Y0] distance [_Xav,_Yav])/15;
-	_transdir = (_Xav - _X0) atan2 (_Yav - _Y0);
+	private _transspeed = ([_X0,_Y0] distance [_Xav,_Yav])/15;
+	private _transdir = (_Xav - _X0) atan2 (_Yav - _Y0);
 		
-	_add = 16/(1 + (_transspeed));
+	private _add = 16/(1 + (_transspeed));
 
-	_Xhd = _transspeed * (sin _transdir) * (_eta + _add);
-	_Yhd = _transspeed * (cos _transdir) * (_eta + _add);
-	_impactpos = _targetpos;
-	_safebase = 100;
+	private _Xhd = _transspeed * (sin _transdir) * (_eta + _add);
+	private _Yhd = _transspeed * (cos _transdir) * (_eta + _add);
+	private _impactpos = _targetpos;
+	private _safebase = 100;
 
-	_exPX = (_targetPos select 0) + _Xhd;
-	_exPY = (_targetPos select 1) + _Yhd;
+	private _exPX = (_targetPos select 0) + _Xhd;
+	private _exPY = (_targetPos select 1) + _Yhd;
 
-	_exPos = [_exPX,_exPY,getTerrainHeightASL [_exPX,_exPY]];
+	private _exPos = [_exPX,_exPY,getTerrainHeightASL [_exPX,_exPY]];
 	_exTargetPosATL = ASLtoATL _exPos;
 		
 	_eta = -1;
@@ -230,9 +210,9 @@ _amount2 = _amount - _amount1;
 		{
 			_vh = vehicle _x;
 			_vhMags = magazines _vh; 
-			if (not (_vh isEqualTo _x) and {(count _vhMags) > 0}) then
+			if (!(_vh isEqualTo _x) && {(count _vhMags) > 0}) then
 			{
-				_ammoC = _vhMags select 0;
+				private _ammoC = _vhMags select 0;
 				
 				{
 					if (_x in _ammo) exitWith
@@ -244,7 +224,7 @@ _amount2 = _amount - _amount1;
 				
 				_newEta = _vh getArtilleryETA [_exTargetPosATL,_ammoC];
 				
-				if (not (isNil "_newEta") and {((_newEta < _eta) or (_eta < 0))}) then
+				if (!isNil "_newEta" && {((_newEta < _eta) || (_eta < 0))}) then
 				{
 					_eta = _newEta
 				}
@@ -264,15 +244,15 @@ _amount2 = _amount - _amount1;
 
 	_exPos = [_exPX,_exPY,getTerrainHeightASL [_exPX,_exPY]];
 
-	_exDst = _targetPos distance _exPos;
+	private _exDst = _targetPos distance _exPos;
 
 	if (isNil ("RydFFE_Safe")) then {_safebase = 100} else {_safebase = RydFFE_Safe};
 
-	_safe = _safebase * _RydAccf * (1 + overcast);
+	private _safe = _safebase * _RydAccf * (1 + overcast);
 
-	_safecheck = true;
+	private _safecheck = true;
 
-	if not (_onRoad) then
+	if !_onRoad then
 	{
 		{
 			if (([(_impactpos select 0) + _Xhd, (_impactpos select 1) + _Yhd] distance (vehicle (leader _x))) < _safe) exitwith 
@@ -288,7 +268,7 @@ _amount2 = _amount - _amount1;
 		}
 		foreach _friends;
 
-		if not (_safecheck) then 
+		if !_safecheck then 
 		{
 			_Xhd = _Xhd/2;
 			_Yhd = _Yhd/2;
@@ -297,7 +277,7 @@ _amount2 = _amount - _amount1;
 				if ([(_impactpos select 0) + _Xhd, (_impactpos select 1) + _Yhd] distance (vehicle (leader _x)) < _safe) exitwith {_safecheck = false};
 			}
 			foreach _friends;
-			if not (_safecheck) then 
+			if !_safecheck then 
 			{
 				_Xhd = _Xhd/5;
 				_Yhd = _Yhd/5;
@@ -313,30 +293,30 @@ _amount2 = _amount - _amount1;
 	}
 	else
 	{
-		_nR = _targlead nearRoads 30;
+		private _nR = _targlead nearRoads 30;
 
-		_stRS = _nR select 0;
-		_dMin = _stRS distance _exPos;
+		private _stRS = _nR select 0;
+		private _dMin = _stRS distance _exPos;
 
 		{
-			_dAct = _x distance _exPos;
+			private _dAct = _x distance _exPos;
 			if (_dAct < _dMin) then {_dMin = _dAct;_stRS = _x}
 		}
 		foreach _nR;
 
-		_dSum = _assumedPos distance _stRS;
-		_checkedRS = [_stRS];
-		_actRS = _stRS;
+		private _dSum = _assumedPos distance _stRS;
+		private _checkedRS = [_stRS];
+		private _actRS = _stRS;
 
 		while {_dSum < _exDst} do
 		{
-			_RSArr = (roadsConnectedTo _actRS) - _checkedRS;
+			private _RSArr = (roadsConnectedTo _actRS) - _checkedRS;
 			if ((count _RSArr) == 0) exitWith {};
 			_stRS = _RSArr select 0;
 			_dMin = _stRS distance _exPos;
 
 			{
-				_dAct = _x distance _exPos;
+				private _dAct = _x distance _exPos;
 				if (_dAct < _dMin) then {_dMin = _dAct;_stRS = _x}
 			}
 			foreach _RSArr;
@@ -351,12 +331,12 @@ _amount2 = _amount - _amount1;
 		if (_dSum < _exDst) then
 		{
 			//if (_transdir < 0) then {_transdir = _transdir + 360};
-			_angle = [_targetPos,(getPosASL _stRS),1] call RYD_fnc_AngTowards;
+			private _angle = [_targetPos,(getPosASL _stRS),1] call RYD_fnc_AngTowards;
 			_impactPos = [(getPosASL _stRS),_angle,(_exDst - _dSum)] call RYD_fnc_PosTowards2D
 		}
 		else
 		{
-			_rPos = getPosASL _stRS;
+			private _rPos = getPosASL _stRS;
 			_impactPos = [_rPos select 0,_rPos select 1]
 		};
 			
@@ -370,7 +350,7 @@ _amount2 = _amount - _amount1;
 	foreach _friends
 	};
 
-	if not (_safeCheck) then
+	if !_safeCheck then
 	{
 		_safeCheck = true;
 
@@ -383,66 +363,66 @@ _amount2 = _amount - _amount1;
 	foreach _friends
 	};
 
-	if not (_safecheck) exitwith {(group _target) setVariable ["CFF_Taken",false];_waitFor = false};
+	if !(_safecheck) exitwith {(group _target) setVariable ["CFF_Taken",false];_waitFor = false};
 
-	_distance2 = _impactPos distance (getPosATL (vehicle _batlead1));
-	_DweatherF = 1 + overcast;
-	_gauss09 = (random 0.09) + (random 0.09) + (random 0.09) + (random 0.09) + (random 0.09) + (random 0.09) + (random 0.09) + (random 0.09) +  (random 0.09) + (random 0.09);
+	private _distance2 = _impactPos distance (getPosATL (vehicle _batlead1));
+	private _DweatherF = 1 + overcast;
+	private _gauss09 = (random 0.09) + (random 0.09) + (random 0.09) + (random 0.09) + (random 0.09) + (random 0.09) + (random 0.09) + (random 0.09) +  (random 0.09) + (random 0.09);
 
-	//_gauss1 = (random 0.1) + (random 0.1) + (random 0.1) + (random 0.1) + (random 0.1) + (random 0.1) + (random 0.1) + (random 0.1) +  (random 0.1) + (random 0.1);
-	//_gauss04 = (random 0.04) + (random 0.04) + (random 0.04) + (random 0.04) + (random 0.04) + (random 0.04) + (random 0.04) + (random 0.04) +  (random 0.04) + (random 0.04);
-	//_gauss2 = (random 0.2) + (random 0.2) + (random 0.2) + (random 0.2) + (random 0.2) + (random 0.2) + (random 0.2) + (random 0.2) +  (random 0.2) + (random 0.2);
-	//_DdistF = (_distance2/10) * (0.1 + _gauss04);
-	//_DdamageF = 1 + 0.5 * (damage _batlead1);
-	//_DskillF = 2 * (skill _batlead1);
-	//_anotherD = 1 + _gauss1;
-	//_Dreduct = (1 + _gauss2) + _DskillF;
+	//private _gauss1 = (random 0.1) + (random 0.1) + (random 0.1) + (random 0.1) + (random 0.1) + (random 0.1) + (random 0.1) + (random 0.1) +  (random 0.1) + (random 0.1);
+	//private _gauss04 = (random 0.04) + (random 0.04) + (random 0.04) + (random 0.04) + (random 0.04) + (random 0.04) + (random 0.04) + (random 0.04) +  (random 0.04) + (random 0.04);
+	//private _gauss2 = (random 0.2) + (random 0.2) + (random 0.2) + (random 0.2) + (random 0.2) + (random 0.2) + (random 0.2) + (random 0.2) +  (random 0.2) + (random 0.2);
+	//private _DdistF = (_distance2/10) * (0.1 + _gauss04);
+	//private _DdamageF = 1 + 0.5 * (damage _batlead1);
+	//private _DskillF = 2 * (skill _batlead1);
+	//private _anotherD = 1 + _gauss1;
+	//private _Dreduct = (1 + _gauss2) + _DskillF;
 		 
-	//_spawndisp = _dispF * ((_RydAccf * _DdistF * _DdamageF) + (50 * _DweatherF * _anotherD)) / _Dreduct;
-	//_dispersion = 10000 * (_spawndisp atan2 _distance2) / 57.3;
+	//private _spawndisp = _dispF * ((_RydAccf * _DdistF * _DdamageF) + (50 * _DweatherF * _anotherD)) / _Dreduct;
+	//private _dispersion = 10000 * (_spawndisp atan2 _distance2) / 57.3;
 
-	//_disp = _dispersion;
+	//private _disp = _dispersion;
 	//if (isNil ("RydFFE_SpawnM")) then {_disp = _dispersion} else {_disp = _spawndisp};
 
 	//[_battery,_disp] call BIS_ARTY_F_SetDispersion;
 		
 	_RydAccF = 1;
 
-	_gauss1b = (random 0.1) + (random 0.1) + (random 0.1) + (random 0.1) + (random 0.1) + (random 0.1) + (random 0.1) + (random 0.1) +  (random 0.1) + (random 0.1);
-	_gauss2b = (random 0.2) + (random 0.2) + (random 0.2) + (random 0.2) + (random 0.2) + (random 0.2) + (random 0.2) + (random 0.2) +  (random 0.2) + (random 0.2);
-	_AdistF = (_distance2/10) * (0.1 + _gauss09);
-	_AweatherF = _DweatherF;
-	_AdamageF = 1 + 0.1 * (damage (vehicle _batlead1));
-	_AskillF = 5 * (_batlead1 skill "aimingAccuracy");
-	_Areduct = (1 + _gauss2b) + _AskillF;
-	_spotterF = 0.2 + (random 0.2);
-	_anotherA = 1 + _gauss1b;
-	if not (isNil ("RydFFE_FOAccGain")) then {_spotterF = RydFFE_FOAccGain + (random 0.2)};
-	if (((count _phaseF) == 2) and (_x == 1) or ((count _phaseF) == 1)) then {_spotterF = 1};
+	private _gauss1b = (random 0.1) + (random 0.1) + (random 0.1) + (random 0.1) + (random 0.1) + (random 0.1) + (random 0.1) + (random 0.1) +  (random 0.1) + (random 0.1);
+	private _gauss2b = (random 0.2) + (random 0.2) + (random 0.2) + (random 0.2) + (random 0.2) + (random 0.2) + (random 0.2) + (random 0.2) +  (random 0.2) + (random 0.2);
+	private _AdistF = (_distance2/10) * (0.1 + _gauss09);
+	private _AweatherF = _DweatherF;
+	private _AdamageF = 1 + 0.1 * (damage (vehicle _batlead1));
+	private _AskillF = 5 * (_batlead1 skill "aimingAccuracy");
+	private _Areduct = (1 + _gauss2b) + _AskillF;
+	private _spotterF = 0.2 + (random 0.2);
+	private _anotherA = 1 + _gauss1b;
+	if (!isNil ("RydFFE_FOAccGain")) then {_spotterF = RydFFE_FOAccGain + (random 0.2)};
+	if (((count _phaseF) isEqualTo 2) && (_x isEqualTo 1) || ((count _phaseF) isEqualTo 1)) then {_spotterF = 1};
 
-	_acc = _spotterF * _againF * _accF * ((_AdistF * _AdamageF) + (50 * _AweatherF * _anotherA)) / _Areduct;
+	private _acc = _spotterF * _againF * RydFFE_Acc * ((_AdistF * _AdamageF) + (50 * _AweatherF * _anotherA)) / _Areduct;
 
-	_finalimpact = [(_impactpos select 0) + (random (2 * _acc)) - _acc,(_impactpos select 1) + (random (2 * _acc)) - _acc];
+	private _finalimpact = [(_impactpos select 0) + (random (2 * _acc)) - _acc,(_impactpos select 1) + (random (2 * _acc)) - _acc];
 
-	if not (isNull _myFO) then
+	if !isNull _myFO then
 	{
 		_assumedPos = _myFO getHideFrom _target;
 	};
 
-	if (isNull _target) exitwith {_waitFor = false};
-	if not (alive _target) exitwith {_waitFor = false};
-		
-	if (({not (isNull _x)} count _batlead) < 1) exitwith {_waitFor = false};
-	if (isNull _battery1) exitWith {_waitFor = false};
-	if (({(alive _x)} count _batlead) < 1)  exitwith {_waitFor = false};
+	if (
+		isNull _target ||
+		{!alive _target} ||
+		{_batlead findIf {!isNull _x} isEqualTo -1} ||
+		{_batlead findIf {alive _x} isEqualTo -1} ||
+		{isNull _battery1} ||
+		{(abs (speed _target)) > 50} ||
+		{(_assumedPos select 2) > 20}
+	) exitwith {_waitFor = false};
 
-	if ((abs (speed _target)) > 50) exitWith {_waitFor = false};
-	if ((_assumedPos select 2) > 20) exitWith {_waitFor = false};
-
-	//_dstAct = _impactpos vectorDistance _batlead;
+	//private _dstAct = _impactpos vectorDistance _batlead;
 		
 	{
-		if not (isNull _x) then
+		if (!isNull _x) then
 		{
 			{
 				(vehicle _x) setVariable ["RydFFE_ShotFired",false]
@@ -453,10 +433,10 @@ _amount2 = _amount - _amount1;
 	foreach _battery;
 
 	sleep 0.2;
-	_posX = 0;
-	_posY = 0;
+	private _posX = 0;
+	private _posY = 0;
 	
-	_distance = _impactPos distance _finalimpact;
+	private _distance = _impactPos distance _finalimpact;
 	
 	(_battery select 0) setVariable ["RydFFE_Break",false];
 	
@@ -470,7 +450,7 @@ _amount2 = _amount - _amount1;
 		_finalimpactM set [2,0];
 		
 		_text = getText (configFile >> "CfgVehicles" >> (typeOf (vehicle _batlead1)) >> "displayName");
-		_i = "markBat" + str (_battery1);
+		private _i = "markBat" + str (_battery1);
 		_i = createMarker [_i,_posM1];
 		_i setMarkerColor "ColorBlack";
 		_i setMarkerShape "ICON";
@@ -491,12 +471,12 @@ _amount2 = _amount - _amount1;
 		
 		_markers pushBack _i;
 
-		_dX = (_impactPosM select 0) - (_posM1 select 0);
-		_dY = (_impactPosM select 1) - (_posM1 select 1);
-		_angle = _dX atan2 _dY;
+		private _dX = (_impactPosM select 0) - (_posM1 select 0);
+		private _dY = (_impactPosM select 1) - (_posM1 select 1);
+		private _angle = _dX atan2 _dY;
 		if (_angle >= 180) then {_angle = _angle - 180};
-		_dXb = (_distance2/2) * (sin _angle);
-		_dYb = (_distance2/2) * (cos _angle);
+		private _dXb = (_distance2/2) * (sin _angle);
+		private _dYb = (_distance2/2) * (cos _angle);
 		_posX = (_posM1 select 0) + _dXb;
 		_posY = (_posM1 select 1) + _dYb;
 
@@ -516,8 +496,8 @@ _amount2 = _amount - _amount1;
 		if (_angle >= 180) then {_angle = _angle - 180};
 		_dXb = (_distance/2) * (sin _angle);
 		_dYb = (_distance/2) * (cos _angle);
-		_posX2 = (_impactPosM select 0) + _dXb;
-		_posY2 = (_impactPosM select 1) + _dYb;
+		private _posX2 = (_impactPosM select 0) + _dXb;
+		private _posY2 = (_impactPosM select 1) + _dYb;
 
 		_i = "mark2" + str (_battery1);
 		_i = createMarker [_i,[_posX2,_posY2]];
@@ -556,25 +536,24 @@ _amount2 = _amount - _amount1;
 	[_battery,_distance,_eta,_ammoG,_batlead,_target,_markers] spawn
 	{
 		params ["_battery", "_distance", "_eta", "_ammoG", "_batlead", "_target", "_markers"];
-		private ["_mark", "_Ammo","_alive","_stoper","_TOF"];
 		
 		_battery1 = _battery select 0;
 
-		_alive = true;
-		_shot = false;
+		private _alive = true;
+		private _shot = false;
 
 		waitUntil 
 		{
 			sleep 0.1;
 			if (
-				{not (isNull _x)} count _batlead < 1 ||
+				{!isNull _x} count _batlead < 1 ||
 				{isNull _battery1} ||
-				{({(alive _x)} count _batlead) < 1}	||
+				{({alive _x} count _batlead) < 1}	||
 				{_battery1 getVariable ["RydFFE_Break",false]}
 			) then {_alive = false};
 				
 			{
-				if not (isNull _x) then
+				if (!isNull _x) then
 				{
 					{
 						if ((vehicle _x) getVariable ["RydFFE_ShotFired",false]) exitWith {_shot = true}
@@ -586,11 +565,11 @@ _amount2 = _amount - _amount1;
 			}
 			foreach _battery;
 			
-			((_shot) or not (_alive))
+			(_shot || !_alive)
 		};
 		
 		{
-			if not (isNull _x) then
+			if (!isNull _x) then
 			{
 				{
 					(vehicle _x) setVariable ["RydFFE_ShotFired",false]
@@ -600,22 +579,23 @@ _amount2 = _amount - _amount1;
 		}
 		foreach _battery;
 
-		_stoper = time;
-		_TOF = 0;
-		_rEta = _eta;
-		_mark = "";
+		private _stoper = time;
+		private _TOF = 0;
+		private _rEta = _eta;
+		private _mark = "";
 			
 		if ((count _markers) > 0) then
 		{
 			_mark = _markers select ((count _markers) -1);
 		};
 
-		while {(not (_rEta < 5) and not (_TOF > 200) and (_alive))} do
+		while {_rEta >= 5 && _TOF <= 200 && _alive} do
 		{
-			if (
-				({not (isNull _x)} count _batlead) < 1 ||
+			if 
+			(
+				(_batlead findIf {!isNull _x}) isEqualTo -1 ||
 				{isNull _battery1} ||
-				{({(alive _x)} count _batlead) < 1} ||
+				{(_batlead findIf {alive _x}) isEqualTo -1} ||
 				{_battery1 getVariable ["RydFFE_Break",false]}
 			) exitWith {_alive = false};
 
@@ -630,7 +610,7 @@ _amount2 = _amount - _amount1;
 				sleep 0.1
 			};
 
-			if not (_alive) exitWith 
+			if !_alive exitWith 
 			{
 				(group _target) setvariable ["CFF_Taken",false];
 				
@@ -649,12 +629,10 @@ _amount2 = _amount - _amount1;
 			};
 
 		_eta = [_battery,_finalimpact,_ammo,_amount] call RYD_fnc_CFF_Fire;
-					
-		_UL = _batlead1;
 
 		_alive = (_eta > 0);
 		
-		if not (_alive) then {(_battery select 0) setVariable ["RydFFE_Break",true]};
+		if !_alive then {(_battery select 0) setVariable ["RydFFE_Break",true]};
 
 		waituntil 
 		{
@@ -662,30 +640,30 @@ _amount2 = _amount - _amount1;
 
 			_available = true;
 			if (
-				{not (isNull _x)} count _batlead < 1 ||
+				(_batlead findIf {!isNull _x}) isEqualTo -1 ||
 				{isNull _battery1} ||
-				{({(alive _x)} count _batlead) < 1}
+				{(_batlead findIf {alive _x}) isEqualTo -1}
 			) then {_alive = false};
 						
 			{
-				if not (isNull _x) then
+				if (!isNull _x) then
 				{
 					{
-						if not ((vehicle _x) getVariable ["RydFFE_GunFree",true]) exitWith {_available = false}
+						if !((vehicle _x) getVariable ["RydFFE_GunFree",true]) exitWith {_available = false}
 					}
 					foreach (units _x)
 				};
 				
-				if not (_available) exitWith {}
+				if !_available exitWith {}
 			}
 			foreach _battery;
 			
-			((_available) or not (_alive))
+			(_available || !_alive)
 		};
 
-		if not (_alive) exitWith {_waitFor = false};
+		if !_alive exitWith {_waitFor = false};
 
-		if (((count _phaseF) == 2) and (_x == 1)) then 
+		if (((count _phaseF) isEqualTo 2) && (_x isEqualTo 1)) then 
 		{
 			_alive = true;
 			_splash = false;
@@ -694,15 +672,18 @@ _amount2 = _amount - _amount1;
 			{
 				sleep 1;
 
-				if (({not (isNull _x)} count _batlead) < 1) then {_alive = false};
-				if (isNull _battery1) then {_alive = false};
-				if (({(alive _x)} count _batlead) < 1) then {_alive = false};
-				if not (isNull _battery1) then {_splash = _battery1 getVariable ["RydFFE_SPLASH",false]};
+				if 
+				(
+					(_batlead findIf {!isNull _x}) isEqualTo -1 ||
+					{isNull _battery1} ||
+					{(_batlead findIf {alive _x}) isEqualTo -1}
+				) then {_alive = false};
+				if (!isNull _battery1) then {_splash = _battery1 getVariable ["RydFFE_SPLASH",false]};
 				
-				((_splash) or not (_alive))
+				(_splash || !_alive)
 			};
 				
-			if not (isNull _battery1) then {_battery1 setVariable ["RydFFE_SPLASH",false]};
+			if (!isNull _battery1) then {_battery1 setVariable ["RydFFE_SPLASH",false]};
 
 			sleep 10;
 			
@@ -712,7 +693,7 @@ _amount2 = _amount - _amount1;
 			foreach _markers
 		};
 
-	if not (_alive) exitWith {_waitFor = false};
+	if !_alive exitWith {_waitFor = false};
 }
 foreach _phaseF;
 
@@ -729,17 +710,17 @@ if (_waitFor) then
 
 		if 
 		(
-			({not (isNull _x)} count _batlead) < 1 ||
-			{isNull _battery1 } ||
-			{({(alive _x)} count _batlead) < 1}
+			(_batlead findIf {!isNull _x}) isEqualTo -1 ||
+			{isNull _battery1} ||
+			{(_batlead findIf {alive _x}) isEqualTo -1}
 		) then {_alive = false};
 		
-		if not (isNull _battery1) then {_splash = _battery1 getVariable ["RydFFE_SPLASH",false]};
+		if (!isNull _battery1) then {_splash = _battery1 getVariable ["RydFFE_SPLASH",false]};
 			
-		((_splash) or not (_alive))
+		(_splash || !_alive)
 	};
 				
-	if not (isNull _battery1) then {_battery1 setVariable ["RydFFE_SPLASH",false]};
+	if (!isNull _battery1) then {_battery1 setVariable ["RydFFE_SPLASH",false]};
 
 	sleep 10
 };
@@ -759,30 +740,29 @@ waitUntil
 
 	_available = true;
 	//if (isNull _battery1) then {_alive = false};
-	if (({not (isNull _x)} count _batlead) < 1 || {({(alive _x)} count _batlead) < 1}) then {_alive = false};
+	if ((_batlead findIf {!isNull _x}) isEqualTo -1 || {(_batlead findIf {alive _x}) isEqualTo -1}) then {_alive = false};
 					
 	{
-		if not (isNull _x) then
+		if (!isNull _x) then
 		{
 			{
-				if not ((vehicle _x) getVariable ["RydFFE_GunFree",true]) exitWith {_available = false}
+				if !((vehicle _x) getVariable ["RydFFE_GunFree",true]) exitWith {_available = false}
 			}
 			foreach (units _x)
 		};
 	
-		if not (_available) exitWith {}
+		if !_available exitWith {}
 	}
 	foreach _battery;
 		
-	((_available) or not (_alive))
+	(_available || !_alive)
 };
 
-//if not (_alive) exitWith {};
+//if !_alive exitWith {};
 
 {
-	if not (isNull _x) then
+	if (!isNull _x) then
 	{
 		_x setVariable ["RydFFE_BatteryBusy",false]
 	}
-}
-foreach _battery
+} foreach _battery

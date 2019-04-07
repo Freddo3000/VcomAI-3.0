@@ -1,6 +1,5 @@
 //_bArr = [_tgtPos,RydFFE_ArtG,"SADARM",6,leaderHQ] call RYD_fnc_ArtyMission;
 params ["_pos","_arty","_ammoG","_amount","_FO"];
-private ["_pos","_arty","_ammoG","_amount","_FO","_gp","_checked","_vh","_tp","_inRange","_pX","_pY","_pZ"];
 
 private _ammo = "";
 private _ammoArr = [];
@@ -15,21 +14,21 @@ private _vehs = 0;
 private _allAmmo = 0;
 
 {
-	_gp = _x; 
-	if not (isNull _gp) then
+	private _gp = _x; 
+	if (!isNull _gp) then
 	{
-		if not (_gp getVariable ["RydFFE_BatteryBusy",false]) then
+		if !(_gp getVariable ["RydFFE_BatteryBusy",false]) then
 		{
 			_hasAmmo = 0;
-			_checked = [];
+			private _checked = [];
 				
 			{
-				_vh = vehicle _x;
-				if not (_vh in _checked) then
+				private _vh = vehicle _x;
+				if !(_vh in _checked) then
 				{
 					_checked set [(count _checked),_vh];
 					
-					_tp = toLower (typeOf _vh);
+					private _tp = toLower (typeOf _vh);
 					
 					switch (true) do
 					{
@@ -110,7 +109,7 @@ private _allAmmo = 0;
 						}
 					};
 					
-					_inRange = _pos inRangeOfArtillery [[_vh],_ammo];
+					private _inRange = _pos inRangeOfArtillery [[_vh],_ammo];
 					
 					if (_inRange) then
 					{
@@ -123,14 +122,13 @@ private _allAmmo = 0;
 								_vehs = _vehs + 1
 							};
 							
-							if not (_hasAmmo < _amount) exitWith {};
-							if not (_allAmmo < _amount) exitWith {}
+							if !(_hasAmmo < _amount || _allAmmo < _amount) exitWith {};
 						}
 						foreach (magazinesAmmo _vh);
 					}
 				};
 
-				if not (_vehs < _amount) exitWith {}
+				if (_vehs >= _amount) exitWith {}
 			}
 			foreach (units _gp);
 
@@ -142,12 +140,11 @@ private _allAmmo = 0;
 		}
 	};
 	
-	if not (_hasAmmo < _amount) exitWith {};
-	if not (_allAmmo < _amount) exitWith {}
+	if (_hasAmmo >= _amount || _allAmmo >= _amount) exitWith {};
 }
 foreach _arty;
 
-if not ((count _artyAv) == 0) then
+if ((count _artyAv) > 0) then
 {
 	_battery = _artyAv;
 	
@@ -156,16 +153,16 @@ if not ((count _artyAv) == 0) then
 	if (_ammoG in ["ILLUM","SMOKE"]) then
 	{
 		{
-			if not (isNull _x) then
+			if (!isNull _x) then
 			{
 				_x setVariable ["RydFFE_BatteryBusy",true]
 			}
 		}
 		foreach _battery;
 
-		_pX = _pos select 0;
-		_pY = _pos select 1;
-		_pZ = _pos select 2;
+		private _pX = _pos select 0;
+		private _pY = _pos select 1;
+		private _pZ = _pos select 2;
 
 		_pX = _pX + (random 100) - 50;
 		_pY = _pY + (random 100) - 50;
@@ -177,64 +174,63 @@ if not ((count _artyAv) == 0) then
 		{
 			params ["_battery","_pos","_ammo","_FO","_amount","_ammoG"];
 
-			if (_ammoG == "ILLUM") then 
+			if (_ammoG isEqualTo "ILLUM") then 
 			{
 				[_battery,_pos,_ammo,_amount] call RYD_fnc_CFF_Fire;
 			}
 			else
 			{
-				_angle = [_FO,_pos,10] call RYD_fnc_AngTowards;
-				_pos2 = [_pos,_angle + 110,200 + (random 100) - 50] call RYD_fnc_PosTowards2D;
-				_pos3 = [_pos,_angle - 110,200 + (random 100) - 50] call RYD_fnc_PosTowards2D;
+				private _angle = [_FO,_pos,10] call RYD_fnc_AngTowards;
+				private _pos2 = [_pos,_angle + 110,200 + (random 100) - 50] call RYD_fnc_PosTowards2D;
+				private _pos3 = [_pos,_angle - 110,200 + (random 100) - 50] call RYD_fnc_PosTowards2D;
 				//_i2 = [_pos2,(random 1000),"markArty","ColorRed","ICON","mil_dot",_ammoG,"",[0.75,0.75]] call RYD_Mark;
 				//_i3 = [_pos3,(random 1000),"markArty","ColorRed","ICON","mil_dot",_ammoG,"",[0.75,0.75]] call RYD_Mark;
 
 				{
 					[_battery,_x,_ammo,ceil (_amount/3)] call RYD_fnc_CFF_Fire;
 					
-					_ct = 0;
+					private _ct = 0;
 					waitUntil 
 					{
 						sleep 0.1;
 						_ct = _ct + 0.1;
-						_busy = 0; 
+						private _busy = 0; 
 						
 						{
-							if not (isNull _x) then
+							if (!isNull _x) then
 							{
-								_busy = _busy + ({not ((vehicle _x) getVariable ["RydFFE_GunFree",true])} count (units _x))
+								_busy = _busy + ({!((vehicle _x) getVariable ["RydFFE_GunFree",true])} count (units _x))
 							};
 						}
 						foreach _battery;
 						
-						((_busy == 0) or (_ct > 12))
+						(_busy isEqualTo 0 || _ct > 12)
 					};
-				}
-				foreach [_pos,_pos2,_pos3]
+				} foreach [_pos,_pos2,_pos3]
 			};
 		
-			_ct = 0;
+			private _ct = 0;
 			waitUntil 
 			{
 				sleep 0.1;
 				_ct = _ct + 0.1;
-				_busy = 0; 
+				private _busy = 0; 
 				
 				{
-					if not (isNull _x) then
+					if (!isNull _x) then
 					{
 						_add = {not ((vehicle _x) getVariable ["RydFFE_GunFree",true])} count (units _x);
 						_busy = _busy + _add;
-						if (_add == 0) then {_x setVariable ["RydFFE_BatteryBusy",false]}
+						if (_add isEqualTo 0) then {_x setVariable ["RydFFE_BatteryBusy",false]}
 					};
 				}
 				foreach _battery;
 				
-				((_busy == 0) or (_ct > 12))
+				((_busy isEqualTo 0) || (_ct > 12))
 			};
 			
 			{
-				if not (isNull _x) then
+				if (!isNull _x) then
 				{
 					_x setVariable ["RydFFE_BatteryBusy",false]
 				}

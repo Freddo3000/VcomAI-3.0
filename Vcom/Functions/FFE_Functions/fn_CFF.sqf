@@ -2,29 +2,26 @@
 
 params ["_artG", "_knEnemies", "_enArmor", "_friends", "_Debug", "_amount"];
 
-private ["_CFFMissions","_tgt","_ammo","_bArr","_possible","_amnt"];
-
-
-_CFFMissions = ceil (random (count _artG));
+private _CFFMissions = ceil (random (count _artG));
 
 for "_i" from 1 to _CFFMissions do
 {
-	_tgt = [_knEnemies] call RYD_fnc_CFF_TGT;
+	private _tgt = [_knEnemies] call RYD_fnc_CFF_TGT;
 
-	if not (isNull _tgt) then
+	if (!isNull _tgt) then
 	{
-		_ammo = "HE";
-		_amnt = _amount;
+		private _ammo = "HE";
+		private _amnt = _amount;
 		if ((random 100) > 85) then {_ammo = "SPECIAL";_amnt = (ceil (_amount/3))};
 		//if (_tgt in _enArmor) then {_ammo = "HE";_amnt = 6};
 
-		_bArr = [(getPosATL _tgt),_artG,_ammo,_amnt,objNull] call RYD_fnc_ArtyMission;
+		private _bArr = [(getPosATL _tgt),_artG,_ammo,_amnt,objNull] call RYD_fnc_ArtyMission;
 
-		_possible = _bArr select 0;
+		private _possible = _bArr select 0;
 		if (_possible) then
 		{
 			{
-				if not (isNull _x) then
+				if (!isNull _x) then
 				{
 					_x setVariable ["RydFFE_BatteryBusy",true]
 				}
@@ -46,7 +43,7 @@ for "_i" from 1 to _CFFMissions do
 			if (_possible) then
 			{
 				{
-					if not (isNull _x) then
+					if (!isNull _x) then
 					{
 						_x setVariable ["RydFFE_BatteryBusy",true]
 					}

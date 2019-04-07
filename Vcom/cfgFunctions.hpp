@@ -326,6 +326,7 @@ class RYD
 	class FFE_Functions
 	{
 		file = "Vcom\Functions\FFE_Functions";
+		class FFE {};
 		class AngTowards {};
 		class ArtyMission {};
 		class ArtyPrep {};

@@ -1,13 +1,12 @@
 params ["_arty", "_amount"];
-private ["_arty","_amount","_vh","_handled","_magTypes","_mags","_tp","_cnt"];	
-	
+
 _amount = ceil _amount;
 //if (_amount < 2) exitWith {};
 
 {		
 	{
-		_vh = vehicle _x;
-		_handled = _vh getVariable ["RydFFEArtyAmmoHandled",false];
+		private _vh = vehicle _x;
+		private _handled = _vh getVariable ["RydFFEArtyAmmoHandled",false];
 		
 		if not (_handled) then
 		{
@@ -26,12 +25,12 @@ _amount = ceil _amount;
 					//}
 				}];
 			
-			_magTypes = getArtilleryAmmo [_vh];
-			_mags = magazines _vh;
+			private _magTypes = getArtilleryAmmo [_vh];
+			private _mags = magazines _vh;
 			
 			{
-				_tp = _x;
-				_cnt = {_x in [_tp]} count _mags;
+				private _tp = _x;
+				private _cnt = {_x in [_tp]} count _mags;
 				_vh addMagazines [_tp, _cnt * (_amount - 1)];
 			}
 			foreach _magTypes

@@ -30,14 +30,15 @@ VCOM_MINEARRAY = [];
 [] spawn VCM_fnc_MineMonitor;
 [] spawn VCM_fnc_HANDLECURATORS;
 
+//Begin Artillery function created by Rydygier - https://forums.bohemia.net/forums/topic/159152-fire-for-effect-the-god-of-war-smart-simple-ai-artillery/
+VCM_FFEHANDLE = [] spawn RYD_fnc_FFE;
+
+
 VCMINITHANDLE = [] spawn
 {
 	waitUntil {time > 2};
 	sleep 5;
 	if (isNil "VCM_SETTINGS" || {VCM_SETTINGS isEqualTo false}) then {[] call VCM_fnc_LoadConfig};
-	
-	//Begin Artillery function created by Rydygier - https://forums.bohemia.net/forums/topic/159152-fire-for-effect-the-god-of-war-smart-simple-ai-artillery/
-	if (VCM_FFE) then {VCM_FFEHANDLE = [] spawn (compile preprocessFileLineNumbers "Vcom\RYD_FFE\FFE.sqf");};
 	
 	[] spawn VCM_fnc_AIDRIVEBEHAVIOR;
 	

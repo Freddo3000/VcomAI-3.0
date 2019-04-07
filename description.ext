@@ -33,7 +33,6 @@ class CfgVcomSettings
 	HealingActive = true; // AI Healing system
 	WaypointGeneration = true; // Generate flanking/reinforcement waypoints
 	FormationChange = true; // Whether AI should change formation depending on surroundings
-	FFEArtillery = true; //Fire For Effect Artillery handling.
 	FullSpeed = true; // AI will enforce "FULL" speed mode
 	
 	MagLimit = 2; // AI will search for ammo when at or below this limit
@@ -54,6 +53,105 @@ class CfgVcomSettings
 	DriverLimit = 4; // How many drivers per cycle can be processed
 	DrivingDelay = 750; // Cycle delay in milliseconds
 	DrivingDist = 10; // Distance to search for obstacles
+	
+	class FFESettings
+	{
+		// Fire For Effect Artillery handling.
+		// For additional info on parameters, check FFE pdf on Github or inside the mod folder
+		Active = true; 
+		Manual = false;
+		NoControl[] = {};
+		ArtyShells = 1;
+		Interval = 10;
+		Debug = false;
+		FO[] = {};
+		2PhWithoutFO = true;
+		OnePhase = false;
+		Amount = 6;
+		Acc = 2;
+		Safe = 100;
+		Monogamy = true;
+		ShellView = false;
+		ShellViewRange = 3000;
+		FOAccGain = 1;
+		FOClass[] =
+		{
+			/*"i_spotter_f",
+			"o_spotter_f",
+			"b_spotter_f",
+			"o_recon_jtac_f",
+			"b_recon_jtac_f",
+			"i_sniper_f",
+			"o_sniper_f",
+			"b_sniper_f",
+			"i_soldier_m_f",
+			"o_soldier_m_f",
+			"b_g_soldier_m_f",
+			"b_soldier_m_f",
+			"o_recon_m_f",
+			"b_recon_m_f",
+			"o_soldieru_m_f",
+			"i_uav_01_f",
+			"i_uav_02_cas_f",
+			"i_uav_02_f",
+			"o_uav_01_f",
+			"o_uav_02_cas_f",
+			"o_uav_02_f",
+			"b_uav_01_f",
+			"b_uav_02_cas_f",
+			"b_uav_02_f"*/
+		};
+		// See manual page 5 for format
+		class FFE_SPMortars
+		{
+			class MBT_01_arty_base_F
+			{
+				Variants[] = {"b_mbt_01_arty_f", "b_t_mbt_01_arty_f"};
+				Magazines[] = {"32rnd_155mm_mo_shells", "2rnd_155mm_mo_cluster", "4rnd_155mm_mo_guided", "6rnd_155mm_mo_smoke"};
+			};
+			class MBT_02_arty_base_F
+			{
+				Variants[] = {"o_mbt_02_arty_f", "o_t_mbt_02_arty_ghex_f"};
+				Magazines[] = {"32rnd_155mm_mo_shells", "2rnd_155mm_mo_cluster", "4rnd_155mm_mo_guided", "6rnd_155mm_mo_smoke"};
+			};
+		};
+		class FFE_Mortars
+		{
+			class Mortar_01_base_F
+			{
+				Variants[] = {"b_mortar_01_f", "b_g_mortar_01_f", "b_t_mortar_01_f", "i_g_mortar_01_f", "i_mortar_01_f", "o_g_mortar_01_f", "o_mortar_01_f"};
+				Magazines[] = {"8rnd_82mm_mo_shells", "8rnd_82mm_mo_guided", "8rnd_82mm_mo_lg", "8rnd_82mm_mo_smoke_white", "8rnd_82mm_mo_flare_white"};
+			};
+		};
+		class FFE_Rockets
+		{
+			class MBT_01_mlrs_base_F
+			{
+				Variants[] = {"b_mbt_01_mlrs_f", "b_t_mbt_01_mlrs_f"};
+				Magazines[] = {"12rnd_230mm_rockets", "12rnd_230mm_rockets_cluster", "12rnd_230mm_rockets_cluster"};
+			};
+			class Truck_02_MRL_base_F
+			{
+				Variants[] = {"i_truck_02_mrl_f"};
+				Magazines[] = {"12rnd_230mm_rockets", "12rnd_230mm_rockets_cluster", "12rnd_230mm_rockets_cluster"};
+			};
+		};
+		class FFE_Other
+		{
+			class B_Ship_MRLS_01_base_F
+			{
+				Variants[] = {"b_ship_mrls_01_f"};
+				Magazines[] = {"magazine_missiles_cruise_01_x18", "magazine_missiles_cruise_01_cluster_x18", "magazine_missiles_cruise_01_cluster_x18"};
+			};
+			class B_Ship_Gun_01_base_F
+			{
+				Variants[] = {"n_ship_gun_01_f"};
+				Magazines[] = {"magazine_shipcannon_120mm_he_shells_x32", "magazine_shipcannon_120mm_he_cluster_shells_x2", "magazine_shipcannon_120mm_he_guided_shells_x2", "magazine_shipcannon_120mm_smoke_shells_x6"};
+			};
+		};
+		FFE_IowaMode = false;
+		
+	};
 	
 	// Max 100 - 0 minimum skill
 	// https://community.bistudio.com/wiki/Arma_3_AI_Skill
